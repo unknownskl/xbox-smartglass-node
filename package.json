@@ -9,7 +9,7 @@
     "pcap": "npm run build && node dist/Pcap.js",
     "watch": "npm run build && nodemon",
     "build": "rimraf ./dist && npm run version && tsc",
-    "lint": "npm run version && eslint src/**.ts --max-warnings=4 --fix",
+    "lint": "npm run version && eslint src/**.ts --max-warnings=6 --fix",
     "version": "cp package.json src/package-info.json",
     "install": "npm run build"
   },
