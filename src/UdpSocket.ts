@@ -1,11 +1,14 @@
-import dgram = require('dgram');
+import dgram = require('dgram')
+import Session from './Session'
 
 export default class Socket {
 
     _socket:dgram.Socket
+    _session:Session
 
-    constructor() {
+    constructor(session:Session) {
         this._socket = dgram.createSocket('udp4')
+        this._session = session
     }
 
     create() {
@@ -20,12 +23,24 @@ export default class Socket {
                 resolve(error)
             })
 
-            this._socket.on('message', this._onMessage)
+            this._socket.on('message', (message, remote) => this._onMessage(message, remote))
         })
     }
 
     _onMessage(message, remote) {
         console.log('Socket message:', message, remote)
+
+        this._session.emit('_on_packet', {
+            data: message,
+            remote: remote,
+        })
+
+        if(message.toString('hex').substr(0, 4) === 'dd01'){
+            this._session.emit('_on_discovery_reponse', {
+                data: message,
+                remote: remote,
+            })
+        }
     }
 
     send(message, ip) {
