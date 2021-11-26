@@ -2,10 +2,10 @@
   "name": "xbox-smartglass-node",
   "version": "0.1.0",
   "description": "Xbox Smartglass library made in Typescript",
-  "main": "dist/bin/client.js",
+  "main": "dist/bin/Client.js",
   "scripts": {
     "test": "nyc --reporter=html --reporter=lcov --reporter=text ./node_modules/mocha/bin/mocha -r ts-node/register tests/**.ts tests/**/*.ts tests/**/**/*.ts",
-    "start": "npm run build && DEBUG=* node dist/bin/client.js",
+    "start": "npm run build && DEBUG=* node dist/bin/Client.js",
     "pcap": "npm run build && node dist/Pcap.js",
     "watch": "npm run build && nodemon",
     "build": "rimraf ./dist && npm run version && tsc",
