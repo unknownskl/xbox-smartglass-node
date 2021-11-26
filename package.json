@@ -1,0 +1,45 @@
+{
+  "name": "xbox-smartglass-node",
+  "version": "0.1.0",
+  "description": "Xbox Smartglass library made in Typescript",
+  "main": "dist/bin/client.js",
+  "scripts": {
+    "test": "nyc --reporter=html --reporter=lcov --reporter=text ./node_modules/mocha/bin/mocha -r ts-node/register tests/**.ts tests/**/*.ts tests/**/**/*.ts",
+    "start": "npm run build && DEBUG=* node dist/bin/client.js",
+    "pcap": "npm run build && node dist/Pcap.js",
+    "watch": "npm run build && nodemon",
+    "build": "rimraf ./dist && npm run version && tsc",
+    "lint": "npm run version && eslint src/**.ts --max-warnings=4 --fix",
+    "version": "cp package.json src/package-info.json",
+    "install": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/unknownskl/xbox-smartglass-node.git"
+  },
+  "author": "UnknownSKL <Jim Kroon>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/unknownskl/xbox-smartglass-node/issues"
+  },
+  "homepage": "https://github.com/unknownskl/xbox-smartglass-node#readme",
+  "devDependencies": {
+    "@types/chai": "^4.2.15",
+    "@types/mocha": "^9.0.0",
+    "@types/node": "^14.14.31",
+    "@typescript-eslint/eslint-plugin": "^4.29.2",
+    "@typescript-eslint/parser": "^4.29.2",
+    "assert": "^2.0.0",
+    "chai": "^4.3.3",
+    "eslint": "^7.20.0",
+    "mocha": "^9.0.3",
+    "nodemon": "^2.0.7",
+    "nyc": "^15.1.0",
+    "rimraf": "^3.0.2",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.3.5"
+  },
+  "dependencies": {
+    "debug": "^4.3.1"
+  }
+}
