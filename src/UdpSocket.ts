@@ -9,6 +9,8 @@ export default class Socket {
     constructor(session:Session) {
         this._socket = dgram.createSocket('udp4')
         this._session = session
+
+        // this._session._client._logger.log('[UdpSocket.js constructor()] Creating new socket')
     }
 
     create() {
@@ -28,7 +30,8 @@ export default class Socket {
     }
 
     _onMessage(message, remote) {
-        console.log('Socket message:', message, remote)
+        // console.log('Socket message:', message, remote)
+        this._session._client._logger.log('[UdpSocket.js _onMessage()] Received message:', message, 'from', remote.address)
 
         this._session.emit('_on_packet', {
             data: message,
@@ -45,8 +48,9 @@ export default class Socket {
 
     send(message, ip) {
         this._socket.send(message, 0, message.length, 5050, ip, (err, bytes) => {
-            console.log('[Socket] Sending packet to client: '+ip+':'+5050)
-            console.log(message.toString('hex'))
+            // console.log('[Socket] Sending packet to client: '+ip+':'+5050)
+            // console.log(message.toString('hex'))
+            this._session._client._logger.log('[UdpSocket.js send()] Send message:', message, 'to', ip)
         })
     }
 

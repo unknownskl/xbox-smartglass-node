@@ -16,6 +16,8 @@ export default class Session {
 
     create() {
         return new Promise((resolve, reject) => {
+            this._client._logger.log('[Session.js create()] Creating new session')
+
             this._socket.create().then(() => {
                 resolve(true)
 
