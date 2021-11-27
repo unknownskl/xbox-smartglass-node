@@ -45,8 +45,9 @@ export default class DiscoveryResponse extends Packet {
         this.setPacket(Buffer.allocUnsafe(2048))
 
         this.write('bytes', Buffer.from('DD01', 'hex')) // Packet type (DiscoveryResponse)
-        this.write('bytes', Buffer.from('0244', 'hex')) // Payloadlength
-        this.write('bytes', Buffer.from('0002', 'hex')) // Version = 2
+        this.write('uint16', (4 + 2 + (this.name.length + 3) + (this.uuid.length + 3) + 4 + 2 + this.certificate.length)) // Payloadlength
+        this.write('uint16', 2) // Version = 2
+        
         this.write('uint32', this.flags)
         this.write('uint16', this.client)
         this.write('sgstring', this.name)
