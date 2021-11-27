@@ -43,6 +43,12 @@ export default class Socket {
                 data: message,
                 remote: remote,
             })
+
+        } else if(message.toString('hex').substr(0, 4) === 'cc01'){
+            this._session.emit('_on_connect_response', {
+                data: message,
+                remote: remote,
+            })
         }
     }
 

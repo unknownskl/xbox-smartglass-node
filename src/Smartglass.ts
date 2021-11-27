@@ -55,13 +55,18 @@ export default class Smartglass {
 
             this.discovery(ip).then((response:any) => {
                 if(response.length > 0){
+                    console.log(response[0])
                     // Console is responsive. Lets connect..
 
                     const session = new Session(this)
                     session.create().then(() => {
 
-                        // Craft connect packet...
-                        resolve(response[0])
+                        session.connect(ip, response[0].certificate).then((connectresponse) => {
+                            resolve(connectresponse)
+
+                        }).catch((error) => {
+                            reject(error)
+                        })
 
                     }).catch((error) => {
                         reject(error)
@@ -69,7 +74,6 @@ export default class Smartglass {
                 } else {
                     reject({error: 'Console not found on ip:' + ip})
                 }
-                resolve(response)
 
             }).catch((error) => {
                 reject(error)

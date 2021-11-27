@@ -17,6 +17,7 @@ describe('ConnectRequest', () => {
 
         // console.log(packet, packet.iv)
         expect(packet.iv).to.deep.equal(Buffer.from('2979d25ea03d97f58f46930a288bf5d2', 'hex'))
+        expect(packet.uuid).to.deep.equal(Buffer.from('de305d5475b4431badb2eb6b9e546014', 'hex'))
         expect(packet.userhash).equal('deadbeefdeadbeefde')
         expect(packet.jwt).equal('dummy_token')
         expect(packet.request_number).equal(0)

@@ -5,7 +5,7 @@ export interface LocalJoinOptions {
     sequenceNum:number;
     target_id:number;
     source_id:number;
-    flags:number;
+    flags?:number;
     channel_id:Buffer;
 
     device_type:number;
@@ -26,7 +26,7 @@ export default class LocalJoin extends Packet {
     sequenceNum = 0
     target_id = 0
     source_id = 0
-    flags = 0
+    flags = 8195
     channel_id = Buffer.from('0000000000000000', 'hex')
     protected_payload = ''
 

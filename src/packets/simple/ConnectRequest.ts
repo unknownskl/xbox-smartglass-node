@@ -2,20 +2,21 @@ import Packet from '../../lib/Packet'
 import Crypto from '../../lib/Crypto'
 
 export interface ConnectRequestOptions {
-    uuid:string;
+    uuid:Buffer;
     pub_key_type:number;
-    pub_key:string;
+    pub_key:Buffer;
     iv:Buffer;
     userhash?:string;
     jwt?:string;
+    request_group_end?:number;
 }
 
 export default class ConnectRequest extends Packet {
     _crypto:Crypto
 
-    uuid = '00000000-0000-0000-0000-000000000000'
+    uuid = Buffer.from('00000000000000000000000000000000', 'hex')
     pub_key_type = 0
-    pub_key = ''
+    pub_key = Buffer.from('')
     iv = Buffer.from('')
     protected_payload = ''
     userhash = ''
@@ -80,6 +81,7 @@ export default class ConnectRequest extends Packet {
             this.iv = packet.iv || this.iv
             this.userhash = packet.userhash || this.userhash
             this.jwt = packet.jwt || this.jwt
+            this.request_group_end = packet.request_group_end || this.request_group_end
         }
     }
 
@@ -96,6 +98,8 @@ export default class ConnectRequest extends Packet {
         protected_payload_decoded.write('uint32', this.request_group_start)
         protected_payload_decoded.write('uint32', this.request_group_end)
 
+        // console.log('protected_payload_decoded', protected_payload_decoded)
+
         const payloadLength = protected_payload_decoded.getOffset()
         const protected_payload = this._crypto.encrypt(protected_payload_decoded.getPacket(payloadLength), undefined, this.iv)
 
@@ -108,6 +112,11 @@ export default class ConnectRequest extends Packet {
         // Write unprotected payload
         this.write('bytes', this.uuid)
         this.write('uint16', this.pub_key_type)
+
+        // console.log('this.pub_key.length', this.pub_key.length)
+        if(this.pub_key.length != 64){
+            console.log('WARNING: pub_key is not 64 bytes!')
+        }
         this.write('bytes', this.pub_key)
         this.write('bytes', this.iv)
 

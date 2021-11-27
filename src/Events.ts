@@ -11,6 +11,10 @@ export default class Events {
         this._eventEmitter.on(name, callback)
     }
 
+    once(name, callback){
+        this._eventEmitter.once(name, callback)
+    }
+
     emit(name, data){
         this._eventEmitter.emit(name, data)
     }
