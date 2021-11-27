@@ -88,7 +88,7 @@ export default class Session {
 
                 this._sourceId = responsePacket.participant_id
 
-                console.log('Sending local join message')
+                // console.log('Sending local join message')
                 // Perrform local join
                 const new_packet = new LocalJoin({
                     sequenceNum: this._getSequenceNum(),
@@ -107,7 +107,7 @@ export default class Session {
                 const reconstructed_packet = new_packet.toPacket()
                 this.send(reconstructed_packet, ip)
 
-                console.log('Sended local join message')
+                // console.log('Sended local join message')
             })
         })
     }
@@ -134,7 +134,7 @@ export default class Session {
     }
 
     _setupKeys(der) {
-        const pem = '-----BEGIN CERTIFICATE-----\n\r' +der.toString('base64').match(/.{0,64}/g).join('\n')+'-----END CERTIFICATE-----';
+        const pem = '-----BEGIN CERTIFICATE-----\n\r' +der.toString('base64').match(/.{0,64}/g).join('\n')+'-----END CERTIFICATE-----'
         const deviceCert = new jsrsasign.X509()
         deviceCert.readCertPEM(pem)
 

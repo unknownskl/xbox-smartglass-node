@@ -55,7 +55,7 @@ export default class Smartglass {
 
             this.discovery(ip).then((response:any) => {
                 if(response.length > 0){
-                    console.log(response[0])
+                    // console.log(response[0])
                     // Console is responsive. Lets connect..
 
                     const session = new Session(this)
