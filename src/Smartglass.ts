@@ -1,5 +1,5 @@
 import Logger from './Logger'
-import Events from './Events'
+// import Events from './Events'
 import Session from './Session'
 
 import DiscoveryRequest from './packets/simple/DiscoveryRequest'
@@ -7,11 +7,11 @@ import DiscoveryResponse from './packets/simple/DiscoveryResponse'
 
 export default class Smartglass {
     _logger:Logger;
-    _events:Events;
+    // _events:Events;
 
     constructor() {
         this._logger = new Logger('xbox-smartglass-core')
-        this._events = new Events()
+        // this._events = new Events()
     }
 
     discovery(ip?:string) {
@@ -30,13 +30,10 @@ export default class Smartglass {
                 const consolesFound: Array<DiscoveryResponse> = []
 
                 session.on('_on_discovery_reponse', (message) => {
-                    // console.log('_on_discovery_reponse:', message)
                     const response = new DiscoveryResponse(message.data)
-                    // console.log(response)
                     consolesFound.push(response)
                 })
     
-                // console.log('Sending packet:', requestPacket)
                 session.send(requestPacket, ip)
     
                 setTimeout(() => {
@@ -51,8 +48,35 @@ export default class Smartglass {
         })
     }
 
-    connect() {
-        // New promise, no return
+    connect(ip) {
+        return new Promise((resolve, reject) => {
+            // const session = new Session(this)
+            // session.create().then(() => {
+
+            this.discovery(ip).then((response:any) => {
+                if(response.length > 0){
+                    // Console is responsive. Lets connect..
+
+                    const session = new Session(this)
+                    session.create().then(() => {
+
+                        // Craft connect packet...
+                        resolve(response[0])
+
+                    }).catch((error) => {
+                        reject(error)
+                    })
+                } else {
+                    reject({error: 'Console not found on ip:' + ip})
+                }
+                resolve(response)
+
+            }).catch((error) => {
+                reject(error)
+            })
+
+        })
+        
     }
 
     getActiveApp() {
