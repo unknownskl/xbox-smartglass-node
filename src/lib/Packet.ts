@@ -25,8 +25,11 @@ export default class Packet {
         this._packet = packet
     }
 
-    getPacket(){
+    getPacket(length?:number){
         if(this._packet!== undefined){
+            if(length !== undefined){
+                return this._packet.slice(0, length)
+            }
             return this._packet
         } else {
             throw Error('Could not get empty packet')

@@ -24,18 +24,27 @@ describe('ConnectRequest', () => {
         expect(packet.request_group_end).equal(2)
     })
 
-    // it('should repack a ConnectRequest packet', () => {
-    //     const packet = new ConnectRequest(packet_data)
-    //     expect(packet.getType()).equal('ConnectRequest')
+    it('should repack a ConnectRequest packet', () => {
+        const crypto = new Crypto()
+        crypto.loadSecret(Buffer.from('82bba514e6d19521114940bd65121af234c53654a8e67add7710b3725db44f7730ed8e3da7015a09fe0f08e9bef3853c0506327eb77c9951769d923d863a2f5e', 'hex'))
+        
+        const packet = new ConnectRequest(packet_data, crypto)
+        expect(packet.getType()).equal('ConnectRequest')
 
-    //     const new_packet = new ConnectRequest({
-    //         name: packet.name,
-    //         uuid: packet.uuid,
-    //         certificate: packet.certificate,
-    //     })
-    //     const reconstructed_packet = new_packet.toPacket()
+        // console.log(packet.uuid)
 
-    //     expect(reconstructed_packet.toString('hex')).equal(packet_data.toString('hex'))
-    // })
+        const new_packet = new ConnectRequest({
+            uuid: packet.uuid,
+            pub_key_type: packet.pub_key_type,
+            pub_key: packet.pub_key,
+            iv: packet.iv,
+            userhash: packet.userhash,
+            jwt: packet.jwt,
+
+        }, crypto)
+        const reconstructed_packet = new_packet.toPacket()
+
+        expect(reconstructed_packet.toString('hex')).equal(packet_data.toString('hex'))
+    })
 
 })

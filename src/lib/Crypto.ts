@@ -37,6 +37,24 @@ export default class Crypto {
 
     encrypt(data, key?, iv?) {
 
+        // Pad data if needed
+        data = Buffer.from(data)
+
+        if(data.length % 16 > 0){
+            const padStart = data.length % 16
+            const padTotal = (16-padStart)
+
+            for(let paddingnum = (padStart+1); paddingnum <= 16; paddingnum++){
+                const padBuffer = Buffer.from('00', 'hex')
+                padBuffer.writeUInt8(padTotal)
+
+                data = Buffer.concat([
+                    data,
+                    padBuffer,
+                ])
+            }
+        }
+
         if(iv === undefined){
             iv = Buffer.from('00000000000000000000000000000000', 'hex')
         }
@@ -45,7 +63,6 @@ export default class Crypto {
             key = this._encryptionkey
         }
 
-        data = Buffer.from(data)
         const cipher = crypto.createCipheriv('aes-128-cbc', key, iv)
         cipher.setAutoPadding(false)
 
@@ -73,5 +90,13 @@ export default class Crypto {
         decryptedPayload += cipher.final('binary')
 
         return Buffer.from(decryptedPayload, 'binary')
+    }
+
+    sign(data){
+        const hashHmac = crypto.createHmac('sha256', this._hash_key)
+        hashHmac.update(data)
+        const protectedPayloadHash = hashHmac.digest()
+
+        return Buffer.from(protectedPayloadHash)
     }
 }

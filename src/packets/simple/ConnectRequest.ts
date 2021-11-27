@@ -2,22 +2,27 @@ import Packet from '../../lib/Packet'
 import Crypto from '../../lib/Crypto'
 
 export interface ConnectRequestOptions {
-    uuid?:string;
+    uuid:string;
+    pub_key_type:number;
+    pub_key:string;
+    iv:Buffer;
+    userhash?:string;
+    jwt?:string;
 }
 
 export default class ConnectRequest extends Packet {
     _crypto:Crypto
 
-    uuid:string
-    pub_key_type = -1
+    uuid = '00000000-0000-0000-0000-000000000000'
+    pub_key_type = 0
     pub_key = ''
-    iv = ''
+    iv = Buffer.from('')
     protected_payload = ''
     userhash = ''
     jwt = ''
     request_number = 0
     request_group_start = 0
-    request_group_end = 0
+    request_group_end = 2
 
     constructor(packet:Buffer | ConnectRequestOptions, crypto:Crypto){
         super('ConnectRequest')
@@ -68,28 +73,49 @@ export default class ConnectRequest extends Packet {
             this.request_group_end = protected_payload.read('uint32')
 
         } else {
-            // this.client = packet.client || 0x01
-            // this.name = packet.name || 'Xbox-Smartglass-Node'
-            this.uuid = packet.uuid || 'DE305D54-75B4-431B-ADB2-EB6B9E546014'
-            // this.last_error = packet.last_error || 0
-            // this.certificate = packet.certificate || ''
+
+            this.uuid = packet.uuid || this.uuid
+            this.pub_key_type = packet.pub_key_type || this.pub_key_type
+            this.pub_key = packet.pub_key || this.pub_key
+            this.iv = packet.iv || this.iv
+            this.userhash = packet.userhash || this.userhash
+            this.jwt = packet.jwt || this.jwt
         }
     }
 
     toPacket() {
         this.setPacket(Buffer.allocUnsafe(2048))
 
-        this.write('bytes', Buffer.from('DD01', 'hex')) // Packet type (ConnectRequest)
-        this.write('bytes', Buffer.from('0244', 'hex')) // Payloadlength
-        this.write('bytes', Buffer.from('0244', 'hex')) // ProtectedPayloadlength
-        this.write('bytes', Buffer.from('0002', 'hex')) // Version = 2
-        // this.write('uint32', this.flags)
-        // this.write('uint16', this.client)
-        // this.write('sgstring', this.name)
-        // this.write('sgstring', this.uuid)
-        // this.write('uint32', this.last_error)
-        // this.write('uint16', this.certificate.length)
-        // this.write('bytes', this.certificate)
+        // Generate protected payload
+        const protected_payload_decoded = new Packet('protectedPayload')
+        protected_payload_decoded.setPacket(Buffer.allocUnsafe(2048))
+
+        protected_payload_decoded.write('sgstring', this.userhash)
+        protected_payload_decoded.write('sgstring', this.jwt)
+        protected_payload_decoded.write('uint32', this.request_number)
+        protected_payload_decoded.write('uint32', this.request_group_start)
+        protected_payload_decoded.write('uint32', this.request_group_end)
+
+        const payloadLength = protected_payload_decoded.getOffset()
+        const protected_payload = this._crypto.encrypt(protected_payload_decoded.getPacket(payloadLength), undefined, this.iv)
+
+        // Write packet header
+        this.write('bytes', Buffer.from('cc00', 'hex')) // Packet type (ConnectRequest)
+        this.write('uint16', (this.uuid.length + 2 + this.pub_key.length + this.iv.length)) // Payloadlength
+        this.write('uint16', payloadLength) // ProtectedPayloadlength
+        this.write('uint16', 2) // Version = 2
+
+        // Write unprotected payload
+        this.write('bytes', this.uuid)
+        this.write('uint16', this.pub_key_type)
+        this.write('bytes', this.pub_key)
+        this.write('bytes', this.iv)
+
+        // Write protected payload
+        this.write('bytes', protected_payload)
+
+        const signature = this._crypto.sign(this.getPacket().slice(0, this.getOffset()))
+        this.write('bytes', signature)
 
         return this.getPacket().slice(0, this.getOffset())
     }
