@@ -177,4 +177,58 @@ export default class Packet {
 
         return buffer
     }
+
+    _readFlags(flags) {
+        flags = this._hexToBin(flags.toString('hex'))
+
+        let need_ack = false
+        let is_fragment = false
+
+        if(flags.slice(2, 3) === '1'){
+            need_ack = true
+        }
+
+        if(flags.slice(3, 4) === '1'){
+            is_fragment = true
+        }
+
+        const type = parseInt(flags.slice(4, 16), 2)
+
+        return {
+            'version': parseInt(flags.slice(0, 2), 2).toString(),
+            'need_ack': need_ack,
+            'is_fragment': is_fragment,
+            'type': type,
+        }
+    }
+
+      
+    _hexToBin(hex: string): string {
+        let bin = ''
+    
+        const hexMap: Record<number | string, string> = {
+            0: '0000',
+            1: '0001',
+            2: '0010',
+            3: '0011',
+            4: '0100',
+            5: '0101',
+            6: '0110',
+            7: '0111',
+            8: '1000',
+            9: '1001',
+            a: '1010',
+            b: '1011',
+            c: '1100',
+            d: '1101',
+            e: '1110',
+            f: '1111',
+        }
+
+        for (const c of hex.toLowerCase()) {
+            bin += hexMap[c]
+        }
+    
+        return bin
+    }
 }

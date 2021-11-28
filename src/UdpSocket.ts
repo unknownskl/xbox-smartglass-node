@@ -43,7 +43,7 @@ export default class Socket {
         this._socket.send(message, 0, message.length, 5050, ip, (err, bytes) => {
             // console.log('[Socket] Sending packet to client: '+ip+':'+5050)
             // console.log(message.toString('hex'))
-            this._session._client._logger.log('[UdpSocket.js send()] Send message:', message, 'to', ip)
+            // this._session._client._logger.log('[UdpSocket.js send()] Send message:', message, 'to', ip)
         })
     }
 

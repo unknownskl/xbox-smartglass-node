@@ -86,11 +86,11 @@ export default class Session {
                     console.log('Got console status', message, console_status)
                 })
 
-                // this.on('_on_acknowledgement', (message) => {
-                //     // Check if we already have this id in the queue
-                //     const ack = new Acknowledgement(message.data, this._crypto)
-                //     console.log('Got server ack:', message, ack)
-                // })
+                this.on('_on_acknowledgement', (message) => {
+                    // Check if we already have this id in the queue
+                    const ack = new Acknowledgement(message.data, this._crypto)
+                    this._client._logger.log('[Server -> Client] Acknowledge:', ack.processed, 'low_watermark:', ack.low_watermark)
+                })
 
                 // Setup ack system
 
@@ -180,8 +180,9 @@ export default class Session {
                         rejected: [],
                         
                     }, this._crypto)
-                    // console.log('Send ack:', ack)
+                    
                     const ackPacket = ack.toPacket()
+                    this._client._logger.log('[Client -> Server] Acknowledge:', this._ackMessages, 'low_watermark:', ack.low_watermark)
 
                     // Reset ack messages queue
                     this._ackMessages = []
