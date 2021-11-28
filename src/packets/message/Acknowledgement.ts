@@ -20,7 +20,7 @@ export default class Acknowledgement extends Packet {
     target_id = 0
     source_id = 0
     flags = 32769
-    channel_id = Buffer.from('1000000000000000', 'hex')
+    channel_id = Buffer.from('0000000000000000', 'hex')
     protected_payload = ''
 
     low_watermark = 0
