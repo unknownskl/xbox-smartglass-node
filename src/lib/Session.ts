@@ -2,15 +2,17 @@ import jsrsasign from 'jsrsasign'
 import uuidParse from 'uuid-parse'
 import { v4 as uuidv4 } from 'uuid'
 
-import Smartglass from './Smartglass'
-import UdpSocket from './UdpSocket'
-import Events from './Events'
-import Crypto from './lib/Crypto'
+import Smartglass from '../Smartglass'
+import UdpSocket from '../UdpSocket'
+import Events from '../Events'
+import Crypto from '../lib/Crypto'
+import Router from '../lib/Router'
 
-import ConnectRequest from './packets/simple/ConnectRequest'
-import ConnectResponse from './packets/simple/ConnectResponse'
+import ConnectRequest from '../packets/simple/ConnectRequest'
+import ConnectResponse from '../packets/simple/ConnectResponse'
 
-import LocalJoin from './packets/message/LocalJoin'
+import LocalJoin from '../packets/message/LocalJoin'
+import Acknowledgement from '../packets/message/Acknowledgement'
 
 export default class Session {
     _client:Smartglass
@@ -24,6 +26,11 @@ export default class Session {
     _targetId = 0
     _sourceId = 0
     _sequenceNum = 0
+
+    _lowWatermark = 0
+    _lastAckedId = 0
+    _ackMessages: Array<number> = []
+    _ackInterval
   
     constructor(client:Smartglass){
         this._client = client
@@ -37,6 +44,9 @@ export default class Session {
             this._client._logger.log('[Session.js create()] Creating new session')
 
             this._socket.create().then(() => {
+
+                // Setup timeouts
+
                 this._socketTimeout = Date.now()
 
                 this._socketTimeoutInterval = setInterval(() => {
@@ -49,6 +59,39 @@ export default class Session {
                         this.close()
                     }
                 }, 1000)
+
+                // Setup packet routing
+
+                this.on('_on_packet', (message) => {
+                    const router = new Router(this)
+                    router.parse(message.data).then((packetType) => {
+                        console.log('Routed packet: '+packetType)
+
+                        this.emit('_on_' + packetType, {
+                            data: message.data,
+                            remote: message.remote,
+                        })
+
+                    }).catch((error) => {
+                        console.log('Failed to match packet!')
+                    })
+                })
+
+                this.on('_on_1', (message) => {
+                    // Check if we already have this id in the queue
+                    const ack = new Acknowledgement(message.data, this._crypto)
+                    console.log('Got server ack:', message, ack)
+                })
+
+                // Setup ack system
+
+                this.on('_ack_message', (message) => {
+                    // Check if we already have this id in the queue
+                    if((! this._ackMessages.includes(message.id)) && message.id > this._lastAckedId){
+                        this._ackMessages.push(message.id)
+                        this._lastAckedId = message.id
+                    }
+                })
 
                 resolve(true)
 
@@ -109,6 +152,34 @@ export default class Session {
 
                 // console.log('Sended local join message')
             })
+
+            // Ack messages interval
+
+            this._ackInterval = setInterval(() => {
+                // Check if we have packets to ack...
+                if(this._ackMessages.length > 0){
+                    // We have messages to ack!
+
+                    const ack = new Acknowledgement({
+                        sequenceNum: this._getSequenceNum(),
+                        target_id: this._targetId,
+                        source_id: this._sourceId,
+                        channel_id: Buffer.from('0000000000000000', 'hex'),
+            
+                        low_watermark: this._lowWatermark,
+                        processed: this._ackMessages,
+                        rejected: [],
+                        
+                    }, this._crypto)
+                    console.log('Send ack:', ack)
+                    const ackPacket = ack.toPacket()
+
+                    // Reset ack messages queue
+                    this._ackMessages = []
+
+                    this.send(ackPacket, ip)
+                }
+            }, 100)
         })
     }
 
@@ -149,5 +220,11 @@ export default class Session {
     _getSequenceNum() {
         this._sequenceNum++
         return this._sequenceNum
+    }
+
+    _setLowWatermark(num) {
+        if(num > this._lowWatermark){
+            this._lowWatermark = num
+        }
     }
 }

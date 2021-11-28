@@ -1,5 +1,5 @@
 import dgram = require('dgram')
-import Session from './Session'
+import Session from './lib/Session'
 
 export default class Socket {
 
@@ -37,19 +37,6 @@ export default class Socket {
             data: message,
             remote: remote,
         })
-
-        if(message.toString('hex').substr(0, 4) === 'dd01'){
-            this._session.emit('_on_discovery_reponse', {
-                data: message,
-                remote: remote,
-            })
-
-        } else if(message.toString('hex').substr(0, 4) === 'cc01'){
-            this._session.emit('_on_connect_response', {
-                data: message,
-                remote: remote,
-            })
-        }
     }
 
     send(message, ip) {

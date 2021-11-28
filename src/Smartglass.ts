@@ -1,6 +1,6 @@
 import Logger from './Logger'
 // import Events from './Events'
-import Session from './Session'
+import Session from './lib/Session'
 
 import DiscoveryRequest from './packets/simple/DiscoveryRequest'
 import DiscoveryResponse from './packets/simple/DiscoveryResponse'
@@ -72,7 +72,7 @@ export default class Smartglass {
                         reject(error)
                     })
                 } else {
-                    reject({error: 'Console not found on ip:' + ip})
+                    reject({error: 'Console not found on ip: ' + ip})
                 }
 
             }).catch((error) => {
