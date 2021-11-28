@@ -13,6 +13,7 @@ import ConnectResponse from '../packets/simple/ConnectResponse'
 
 import LocalJoin from '../packets/message/LocalJoin'
 import Acknowledgement from '../packets/message/Acknowledgement'
+import ConsoleStatus from '../packets/message/ConsoleStatus'
 
 export default class Session {
     _client:Smartglass
@@ -63,6 +64,8 @@ export default class Session {
                 // Setup packet routing
 
                 this.on('_on_packet', (message) => {
+                    this._socketTimeout = Date.now()
+
                     const router = new Router(this)
                     router.parse(message.data).then((packetType) => {
                         console.log('Routed packet: '+packetType)
@@ -77,11 +80,17 @@ export default class Session {
                     })
                 })
 
-                this.on('_on_1', (message) => {
+                this.on('_on_console_status', (message) => {
                     // Check if we already have this id in the queue
-                    const ack = new Acknowledgement(message.data, this._crypto)
-                    console.log('Got server ack:', message, ack)
+                    const console_status = new ConsoleStatus(message.data, this._crypto)
+                    console.log('Got console status', message, console_status)
                 })
+
+                // this.on('_on_acknowledgement', (message) => {
+                //     // Check if we already have this id in the queue
+                //     const ack = new Acknowledgement(message.data, this._crypto)
+                //     console.log('Got server ack:', message, ack)
+                // })
 
                 // Setup ack system
 
@@ -171,7 +180,7 @@ export default class Session {
                         rejected: [],
                         
                     }, this._crypto)
-                    console.log('Send ack:', ack)
+                    // console.log('Send ack:', ack)
                     const ackPacket = ack.toPacket()
 
                     // Reset ack messages queue
