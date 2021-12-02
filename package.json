@@ -42,7 +42,7 @@
   "dependencies": {
     "debug": "^4.3.3",
     "elliptic": "^6.5.4",
-    "jsrsasign": "^10.5.0",
+    "jsrsasign": "^10.5.1",
     "uuid": "^8.3.2",
     "uuid-parse": "^1.1.0"
   }
