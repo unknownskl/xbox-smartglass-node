@@ -25,27 +25,28 @@ Xbox Smartglass library made in Typescript for controlling your Xbox One and Xbo
 
 ## Functions
 
-    const Smartglass = require('xbox-smartglass-core-node')
-    var SystemInputChannel = require('xbox-smartglass-core-node/src/channels/systeminput')
-    var SystemMediaChannel = require('xbox-smartglass-core-node/src/channels/systemmedia')
-    var TvRemoteChannel = require('xbox-smartglass-core-node/src/channels/tvremote')
+    import Smartglass from 'xbox-smartglass-node'
+    import SystemInputChannel from 'xbox-smartglass-node/channels/SystemInput'
+    
+    // var SystemMediaChannel = require('xbox-smartglass-core-node/src/channels/systemmedia')
+    // var TvRemoteChannel = require('xbox-smartglass-core-node/src/channels/tvremote')
 
     var sgClient =  Smartglass()
     sgClient.connect(ip).then(function(){
         sgClient.addManager('system_input', SystemInputChannel())
-        sgClient.addManager('system_media', SystemMediaChannel())
-        sgClient.addManager('tv_remote', TvRemoteChannel())
+        // sgClient.addManager('system_media', SystemMediaChannel())
+        // sgClient.addManager('tv_remote', TvRemoteChannel())
     }, function(error){
         console.log(error)
     })
 
     # Send DVR Record command
 
-    sgClient.recordGameDvr().then(function(status){
-        console.log('DVR record send')
-    }).catch(function(error){
-        console.log('DVR record error:', error)
-    })
+    // sgClient.recordGameDvr().then(function(status){
+    //     console.log('DVR record send')
+    // }).catch(function(error){
+    //     console.log('DVR record error:', error)
+    // })
 
 ####  SystemInputChannel
 
