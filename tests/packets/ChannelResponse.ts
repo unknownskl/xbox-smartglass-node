@@ -15,14 +15,14 @@ describe('ChannelResponse', () => {
 
         expect(packet.getType()).equal('ChannelResponse')
 
-        expect(packet.channel_id).to.deep.equal(Buffer.from('0000000000000000', 'hex'))
+        expect(packet.channel_id).to.deep.equal(0)
         expect(packet.sequenceNum).equal(6)
         expect(packet.target_id).equal(31)
         expect(packet.source_id).equal(0)
         expect(packet.flags).equal(40999)
 
         expect(packet.channel_request_id).equal(1)
-        expect(packet.target_channel_id).to.deep.equal(Buffer.from('0000000000000094', 'hex'))
+        expect(packet.target_channel_id).to.deep.equal(148)
         expect(packet.result).equal(0)
     })
 

@@ -1,34 +1,44 @@
 import Packet from '../../lib/Packet'
 import Crypto from '../../lib/Crypto'
 
-export interface ChannelResponseOptions {
+export interface GamepadOptions {
     sequenceNum:number;
     target_id:number;
     source_id:number;
     flags?:number;
     channel_id:number;
 
-    channel_request_id:number;
-    target_channel_id:number;
-    result?:number;
+    timestamp?:number;
+    buttons:number;
+    left_trigger?:number;
+    right_trigger?:number;
+    left_thumb_x?:number;
+    left_thumb_y?:number;
+    right_thumb_x?:number;
+    right_thumb_y?:number;
 }
 
-export default class ChannelResponse extends Packet {
+export default class Gamepad extends Packet {
     _crypto:Crypto
 
     sequenceNum = 0
     target_id = 0
     source_id = 0
-    flags = 40999
+    flags = 36618
     channel_id = 0
     protected_payload = ''
 
-    channel_request_id = 0
-    target_channel_id = 0
-    result = 0
+    timestamp = 0
+    buttons = 0
+    left_trigger = 0
+    right_trigger = 0
+    left_thumb_x = 0
+    left_thumb_y = 0
+    right_thumb_x = 0
+    right_thumb_y = 0
 
-    constructor(packet:Buffer | ChannelResponseOptions, crypto:Crypto){
-        super('ChannelResponse')
+    constructor(packet:Buffer | GamepadOptions, crypto:Crypto){
+        super('Gamepad')
 
         this._crypto = crypto
 
@@ -50,9 +60,14 @@ export default class ChannelResponse extends Packet {
             const protected_payload = new Packet('protectedPayload')
             protected_payload.setPacket(protected_payload_decrypted)
 
-            this.channel_request_id = protected_payload.read('uint32')
-            this.target_channel_id = protected_payload.read('long')
-            this.result = protected_payload.read('uint32')
+            this.timestamp = protected_payload.read('long')
+            this.buttons = protected_payload.read('uint16')
+            this.left_trigger = protected_payload.read('uint32')
+            this.right_trigger = protected_payload.read('uint32')
+            this.left_thumb_x = protected_payload.read('uint32')
+            this.left_thumb_y = protected_payload.read('uint32')
+            this.right_thumb_x = protected_payload.read('uint32')
+            this.right_thumb_y = protected_payload.read('uint32')
 
         } else {
 
@@ -62,9 +77,14 @@ export default class ChannelResponse extends Packet {
             this.flags = packet.flags || this.flags
             this.channel_id = packet.channel_id || this.channel_id
 
-            this.channel_request_id = packet.channel_request_id || this.channel_request_id
-            this.target_channel_id = packet.target_channel_id || this.target_channel_id
-            this.result = packet.result || this.result
+            this.timestamp = packet.timestamp || this.timestamp
+            this.buttons = packet.buttons || this.buttons
+            this.left_trigger = packet.left_trigger || this.left_trigger
+            this.right_trigger = packet.right_trigger || this.right_trigger
+            this.left_thumb_x = packet.left_thumb_x || this.left_thumb_x
+            this.left_thumb_y = packet.left_thumb_y || this.left_thumb_y
+            this.right_thumb_x = packet.right_thumb_x || this.right_thumb_x
+            this.right_thumb_y = packet.right_thumb_y || this.right_thumb_y
         }
     }
 
@@ -75,14 +95,19 @@ export default class ChannelResponse extends Packet {
         const protected_payload_decoded = new Packet('protectedPayload')
         protected_payload_decoded.setPacket(Buffer.allocUnsafe(2048))
 
-        protected_payload_decoded.write('uint32', this.channel_request_id)
-        protected_payload_decoded.write('long', this.target_channel_id)
-        protected_payload_decoded.write('uint32', this.result)
+        protected_payload_decoded.write('long', this.timestamp)
+        protected_payload_decoded.write('uint16', this.buttons)
+        protected_payload_decoded.write('uint32', this.left_trigger)
+        protected_payload_decoded.write('uint32', this.right_trigger)
+        protected_payload_decoded.write('uint32', this.left_thumb_x)
+        protected_payload_decoded.write('uint32', this.left_thumb_y)
+        protected_payload_decoded.write('uint32', this.right_thumb_x)
+        protected_payload_decoded.write('uint32', this.right_thumb_y)
 
         const payloadLength = protected_payload_decoded.getOffset()
 
         // Write packet header
-        this.write('bytes', Buffer.from('d00d', 'hex')) // Packet type (ChannelResponse)
+        this.write('bytes', Buffer.from('d00d', 'hex')) // Packet type (Gamepad)
         this.write('uint16', payloadLength) // ProtectedPayloadlength
         // this.write('uint16', 2) // Version = 2
 

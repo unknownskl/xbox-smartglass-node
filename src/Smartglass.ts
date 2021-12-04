@@ -8,6 +8,7 @@ import DiscoveryResponse from './packets/simple/DiscoveryResponse'
 export default class Smartglass {
     _logger:Logger;
     // _events:Events;
+    _session
 
     constructor() {
         this._logger = new Logger('xbox-smartglass-core')
@@ -62,7 +63,12 @@ export default class Smartglass {
                     session.create().then(() => {
 
                         session.connect(ip, response[0].certificate).then((connectresponse) => {
-                            resolve(connectresponse)
+                            this._session = session
+
+                            resolve({
+                                response: connectresponse,
+                                session: session,
+                            })
 
                         }).catch((error) => {
                             reject(error)
@@ -107,11 +113,11 @@ export default class Smartglass {
         //
     }
 
-    addManager() {
-        //
+    addManager(name, manager) {
+        return this._session.addManager(name, manager)
     }
 
-    getManager() {
-        //
+    getManager(name) {
+        return this._session.getManager(name)
     }
 }

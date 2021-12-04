@@ -14,6 +14,8 @@ import ConnectResponse from '../packets/simple/ConnectResponse'
 import LocalJoin from '../packets/message/LocalJoin'
 import Acknowledgement from '../packets/message/Acknowledgement'
 import ConsoleStatus from '../packets/message/ConsoleStatus'
+import ChannelRequest from '../packets/message/ChannelRequest'
+import ChannelResponse from '../packets/message/ChannelResponse'
 
 export default class Session {
     _client:Smartglass
@@ -27,11 +29,13 @@ export default class Session {
     _targetId = 0
     _sourceId = 0
     _sequenceNum = 0
+    _ip
 
     _lowWatermark = 0
     _lastAckedId = 0
     _ackMessages: Array<number> = []
     _ackInterval
+    _managers = {}
   
     constructor(client:Smartglass){
         this._client = client
@@ -83,22 +87,27 @@ export default class Session {
                 this.on('_on_console_status', (message) => {
                     // Check if we already have this id in the queue
                     const console_status = new ConsoleStatus(message.data, this._crypto)
-                    console.log('Got console status', message, console_status)
+                    this._client._logger.log('[Server -> Client] [' + console_status.sequenceNum + '] ConsoleStatus aud_id:', console_status.activeTitles[0].aum_id, 'build:', console_status.build )
+                    // console.log('Got console status', message, console_status)
                 })
 
                 this.on('_on_acknowledgement', (message) => {
                     // Check if we already have this id in the queue
                     const ack = new Acknowledgement(message.data, this._crypto)
-                    this._client._logger.log('[Server -> Client] Acknowledge:', ack.processed, 'low_watermark:', ack.low_watermark)
+                    this._client._logger.log('[Server -> Client] [' + ack.sequenceNum + '] Acknowledged:', ack.processed, 'Rejected:', ack.rejected, 'low_watermark:', ack.low_watermark)
+
+                    for(let i = 0; i < ack.processed.length; i++){
+                        this.emit('_ack_id_' + ack.processed[i], { id: ack.processed[i], status: 'processed' })
+                    }
                 })
 
                 // Setup ack system
 
                 this.on('_ack_message', (message) => {
                     // Check if we already have this id in the queue
-                    if((! this._ackMessages.includes(message.id)) && message.id > this._lastAckedId){
+                    if((! this._ackMessages.includes(message.id)) ){ //&& message.id > this._lastAckedId){
                         this._ackMessages.push(message.id)
-                        this._lastAckedId = message.id
+                        // this._lastAckedId = message.id
                     }
                 })
 
@@ -111,6 +120,8 @@ export default class Session {
     }
 
     connect(ip, certificate) {
+        this._ip = ip
+
         return new Promise((resolve, reject) => {
 
             const server_cert = this._setupKeys(certificate)
@@ -127,6 +138,7 @@ export default class Session {
                 iv: this._crypto._iv,
                 request_group_end: 1,
             }, this._crypto)
+            this._client._logger.log('[Client -> Server] [0] ConnectRequest public key:', request.pub_key, 'iv:', request.iv)
             const requestPacket = request.toPacket()
             this.send(requestPacket, ip)
 
@@ -142,7 +154,7 @@ export default class Session {
 
                 // console.log('Sending local join message')
                 // Perrform local join
-                const new_packet = new LocalJoin({
+                const localjoin = new LocalJoin({
                     sequenceNum: this._getSequenceNum(),
                     target_id: this._targetId,
                     source_id: this._sourceId,
@@ -156,8 +168,39 @@ export default class Session {
                     display_name: 'unknownskl/xbox-smartglass-node',
                     
                 }, this._crypto)
-                const reconstructed_packet = new_packet.toPacket()
-                this.send(reconstructed_packet, ip)
+                this._client._logger.log('[Client -> Server] [' + localjoin.sequenceNum + '] LocalJoin:', localjoin.display_name)
+                const localjoin_packet = localjoin.toPacket()
+                this.send(localjoin_packet, ip)
+
+                this.once('_ack_id_' + localjoin.sequenceNum, (ack) => {
+                    // console.log('Local join acknowledged. Lets open the channels...')
+
+                    // const channels = {
+                    //     core: '00000000000000000000000000000000',
+                    // }
+
+                    // for(const channel in channels){
+                    //     // Lets open the channels...
+                    //     const channnel_req = new ChannelRequest({
+                    //         sequenceNum: this._getSequenceNum(),
+                    //         target_id: this._targetId,
+                    //         source_id: this._sourceId,
+                    //         channel_id: Buffer.from('0000000000000000', 'hex'),
+
+                    //         channel_request_id: 0,
+                    //         title_id: 0,
+                    //         channel_guid: Buffer.from('fa20b8ca66fb46e0adb60b978a59d35f', 'hex'),
+                    //         activity_id: 0,
+                    //     }, this._crypto)
+
+                    //     // console.log('channnel_req', channnel_req)
+
+                    //     this._client._logger.log('[Client -> Server] [' + channnel_req.sequenceNum + '] ChannelRequest:', channnel_req.channel_request_id, channnel_req.channel_guid)
+                    //     const channnel_req_packet = channnel_req.toPacket()
+                    //     this.send(channnel_req_packet, ip)
+                    //     // console.log('Opening core channel...')
+                    // }
+                })
 
                 // console.log('Sended local join message')
             })
@@ -182,7 +225,7 @@ export default class Session {
                     }, this._crypto)
                     
                     const ackPacket = ack.toPacket()
-                    this._client._logger.log('[Client -> Server] Acknowledge:', this._ackMessages, 'low_watermark:', ack.low_watermark)
+                    this._client._logger.log('[Client -> Server] [' + ack.sequenceNum + '] Acknowledge:', ack.processed, 'Rejected:', ack.rejected, 'low_watermark:', ack.low_watermark)
 
                     // Reset ack messages queue
                     this._ackMessages = []
@@ -193,7 +236,10 @@ export default class Session {
         })
     }
 
-    send(data, ip) {
+    send(data, ip?:string) {
+        if(ip === undefined){
+            ip = this._ip
+        }
         return this._socket.send(data, ip)
     }
 
@@ -212,6 +258,20 @@ export default class Session {
 
     emit(name, data) {
         this._events.emit(name, data)
+    }
+
+    addManager(name, manager) {
+        this._client._logger.log('[lib/Session.ts] Loaded manager: '+name + '('+Object.keys(this._managers).length+')')
+        this._managers[name] = manager
+        this._managers[name].load(this, Object.keys(this._managers).length)
+    }
+
+    getManager(name) {
+        if(this._managers[name] !== undefined){
+            return this._managers[name]
+        } else {
+            return false
+        }
     }
 
     _setupKeys(der) {

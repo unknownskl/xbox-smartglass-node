@@ -6,7 +6,7 @@ export interface ChannelRequestOptions {
     target_id:number;
     source_id:number;
     flags?:number;
-    channel_id:Buffer;
+    channel_id:number;
 
     channel_request_id?:number;
     title_id?:number;
@@ -21,12 +21,12 @@ export default class ChannelRequest extends Packet {
     target_id = 0
     source_id = 0
     flags = 40998
-    channel_id = Buffer.from('0000000000000000', 'hex')
+    channel_id = 0
     protected_payload = ''
 
     channel_request_id = 0
     title_id = 0
-    channel_guid = Buffer.from('0000000000000000', 'hex')
+    channel_guid = Buffer.from('00000000000000000000000000000000', 'hex')
     activity_id = 0
 
     constructor(packet:Buffer | ChannelRequestOptions, crypto:Crypto){
@@ -42,7 +42,7 @@ export default class ChannelRequest extends Packet {
             this.target_id = this.read('uint32') // Target Participant Id
             this.source_id = this.read('uint32') // Source Participant Id
             this.flags = this.read('uint16') // Flags
-            this.channel_id = this.read('bytes', 8) // Channel ID
+            this.channel_id = this.read('long') // Channel ID
 
             this.protected_payload = this.read('remainder')
 
@@ -97,7 +97,7 @@ export default class ChannelRequest extends Packet {
         this.write('uint32', this.target_id) // Target Participant Id
         this.write('uint32', this.source_id) // Source Participant Id
         this.write('uint16', this.flags) // Flags
-        this.write('bytes', this.channel_id) // Channel ID
+        this.write('long', this.channel_id) // Channel ID
 
         // Write protected payload
         const key = this._crypto.encrypt(this.getPacket(16), this._crypto._iv)

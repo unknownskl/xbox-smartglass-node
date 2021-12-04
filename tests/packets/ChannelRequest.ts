@@ -15,7 +15,7 @@ describe('ChannelRequest', () => {
 
         expect(packet.getType()).equal('ChannelRequest')
 
-        expect(packet.channel_id).to.deep.equal(Buffer.from('0000000000000000', 'hex'))
+        expect(packet.channel_id).to.deep.equal(0)
         expect(packet.sequenceNum).equal(2)
         expect(packet.target_id).equal(0)
         expect(packet.source_id).equal(31)

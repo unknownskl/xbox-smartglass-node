@@ -7,7 +7,20 @@ export default class Router {
     _messageTypes = {
         1: 'acknowledgement',
         3: 'local_join',
+        25: 'auxiliary_stream',
+        28: 'json',
         30: 'console_status',
+        38: 'channel_request',
+        39: 'channel_response',
+        40: 'channel_stop',
+        42: 'disconnect',
+        56: 'game_dvr_record',
+        57: 'poweroff',
+        3840: 'media_removed',
+        3841: 'media_command',
+        3842: 'media_result',
+        3843: 'media_state',
+        3850: 'gamepad',
     }
 
     constructor(session:Session){
