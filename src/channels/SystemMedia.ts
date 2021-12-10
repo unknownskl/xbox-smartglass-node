@@ -4,7 +4,7 @@ import ChannelRequest from '../packets/message/ChannelRequest'
 import ChannelResponse from '../packets/message/ChannelResponse'
 import Json from '../packets/message/Json'
 
-export default class TvRemote {
+export default class SystemMedia {
 
     _id
     _session
@@ -12,19 +12,19 @@ export default class TvRemote {
 
     _connected = false
 
-    _message_num = 0
-    _configuration = {}
+    // _message_num = 0
+    // _configuration = {}
 
     load(session:Session, channelNum) {
         this._session = session
         this._id = channelNum
-        this._session._client._logger.log('[channels/TvRemote.ts] Creating TvRemote manager (' + this._id + ')')
+        this._session._client._logger.log('[channels/SystemMedia.ts] Creating SystemMedia manager (' + this._id + ')')
 
         this.open().then((result) => {
-            this._session._client._logger.log('[channels/TvRemote.ts] Channel opened  successfully')
+            this._session._client._logger.log('[channels/SystemMedia.ts] Channel opened  successfully')
 
         }).catch((error) => {
-            this._session._client._logger.log('[channels/TvRemote.ts] Failed to open channel')
+            this._session._client._logger.log('[channels/SystemMedia.ts] Failed to open channel')
         })
     }
 
@@ -38,7 +38,7 @@ export default class TvRemote {
 
                 channel_request_id: this._id,
                 title_id: 0,
-                channel_guid: Buffer.from('d451e3b360bb4c71b3dbf994b1aca3a7', 'hex'),
+                channel_guid: Buffer.from('48a9ca24eb6d4e128c43d57469edd3cd', 'hex'),
                 activity_id: 0,
             }, this._session._crypto)
 
@@ -50,18 +50,18 @@ export default class TvRemote {
 
                 if(res.channel_request_id === this._id){
                     if(res.result === 0){
-                        this._session._client._logger.log('[channels/TvRemote.ts] [' + res.sequenceNum + '] channel_response: Result ok! Channel opened.', res)
+                        this._session._client._logger.log('[channels/SystemMedia.ts] [' + res.sequenceNum + '] channel_response: Result ok! Channel opened.', res)
                         this._connected = true
                         this._channel_id = res.target_channel_id
 
                         resolve(res)
 
                     } else {
-                        this._session._client._logger.log('[channels/TvRemote.ts] [' + res.sequenceNum + '] channel_response: Result failed!', res)
+                        this._session._client._logger.log('[channels/SystemMedia.ts] [' + res.sequenceNum + '] channel_response: Result failed!', res)
                         reject(res)
                     }
                 } else {
-                    this._session._client._logger.log('[channels/TvRemote.ts] [' + res.sequenceNum + '] channel_response: target_id mismatch:', this._id, res.channel_request_id)
+                    this._session._client._logger.log('[channels/SystemMedia.ts] [' + res.sequenceNum + '] channel_response: target_id mismatch:', this._id, res.channel_request_id)
                 }
             })
 
@@ -69,45 +69,45 @@ export default class TvRemote {
         })
     }
 
-    getConfiguration(){
-        return new Promise((resolve, reject) => {
-            if(this._connected === true){
+    // getConfiguration(){
+    //     return new Promise((resolve, reject) => {
+    //         if(this._connected === true){
 
-                this._message_num++
-                const msgId = '2ed6c0fd.' + this._message_num
+    //             this._message_num++
+    //             const msgId = '2ed6c0fd.'+this._message_num
 
-                const json_request = {
-                    msgid: msgId,
-                    request: 'GetConfiguration',
-                }
+    //             const json_request = {
+    //                 msgid: msgId,
+    //                 request: "GetConfiguration"
+    //             }
 
-                const json_req = new Json({
-                    sequenceNum: this._session._getSequenceNum(),
-                    target_id: this._session._targetId,
-                    source_id: this._session._sourceId,
-                    channel_id: this._channel_id,
+    //             const json_req = new Json({
+    //                 sequenceNum: this._session._getSequenceNum(),
+    //                 target_id: this._session._targetId,
+    //                 source_id: this._session._sourceId,
+    //                 channel_id: this._channel_id,
 
-                    json: JSON.stringify(json_request),
-                }, this._session._crypto)
+    //                 json: JSON.stringify(json_request),
+    //             }, this._session._crypto)
                 
-                this._session._client._logger.log('[channels/TvRemote.ts] [' + json_req.sequenceNum + '] getConfiguration: Retrieve media configuration:', json_req)
+    //             this._session._client._logger.log('[channels/SystemMedia.ts] [' + json_req.sequenceNum + '] getConfiguration: Retrieve media configuration:', json_req)
 
-                this._session.send(json_req.toPacket())
+    //             this._session.send(json_req.toPacket())
 
-                setTimeout(() =>{
-                    resolve(this._configuration)
-                }, 1000)
-            } else {
-                reject({
-                    status: 'error_channel_disconnected',
-                    error: 'Channel not ready: TvRemote',
-                })
-            }
-        })
-    }
+    //             setTimeout(() =>{
+    //                 resolve(this._configuration)
+    //             }, 1000)
+    //         } else {
+    //             reject({
+    //                 status: 'error_channel_disconnected',
+    //                 error: 'Channel not ready: TvRemote',
+    //             })
+    //         }
+    //     })
+    // }
 
     // sendCommand(button) {
-    //     this._session._client._logger.log('[channels/TvRemote.ts] Send button press:', button)
+    //     this._session._client._logger.log('[channels/SystemMedia.ts] Send button press:', button)
 
     //     return new Promise((resolve, reject) => {
     //         if(this._connected === true) {
@@ -154,7 +154,7 @@ export default class TvRemote {
     //                 }, 100)
                     
     //             } else {
-    //                 this._session._client._logger.log('[channels/TvRemote.ts] Failed to send button. Reason: Unknown button type:', button)
+    //                 this._session._client._logger.log('[channels/SystemMedia.ts] Failed to send button. Reason: Unknown button type:', button)
 
     //                 reject({
     //                     status: 'error_channel_disconnected',
@@ -166,7 +166,7 @@ export default class TvRemote {
     //         } else {
     //             reject({
     //                 status: 'error_channel_disconnected',
-    //                 error: 'Channel not ready: TvRemote',
+    //                 error: 'Channel not ready: SystemMedia',
     //             })
     //         }
     //     })

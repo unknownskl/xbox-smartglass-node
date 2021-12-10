@@ -4,7 +4,7 @@ import ChannelRequest from '../packets/message/ChannelRequest'
 import ChannelResponse from '../packets/message/ChannelResponse'
 import Gamepad from '../packets/message/Gamepad'
 
-export default class TvRemote {
+export default class SystemInput {
 
     _id
     _session
@@ -40,8 +40,6 @@ export default class TvRemote {
     }
 
     open() {
-        this._session._client._logger.log('[channels/SystemInput.ts] Send button press:')
-
         return new Promise((resolve, reject) => {
             const channnel_req = new ChannelRequest({
                 sequenceNum: this._session._getSequenceNum(),
@@ -55,14 +53,11 @@ export default class TvRemote {
                 activity_id: 0,
             }, this._session._crypto)
 
-            // console.log('channnel_req', channnel_req)
-
             this._session._client._logger.log('[Client -> Server] [' + channnel_req.sequenceNum + '] ChannelRequest:', channnel_req.channel_request_id, channnel_req.channel_guid)
             const channnel_req_packet = channnel_req.toPacket()
 
-            this._session.once('_on_channel_response', (response) => {
+            this._session.on('_on_channel_response', (response) => {
                 const res = new ChannelResponse(response.data, this._session._crypto)
-                // console.log('Channel Response:', res)
 
                 if(res.channel_request_id === this._id){
                     if(res.result === 0){

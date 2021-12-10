@@ -14,8 +14,11 @@ import ConnectResponse from '../packets/simple/ConnectResponse'
 import LocalJoin from '../packets/message/LocalJoin'
 import Acknowledgement from '../packets/message/Acknowledgement'
 import ConsoleStatus from '../packets/message/ConsoleStatus'
-import ChannelRequest from '../packets/message/ChannelRequest'
-import ChannelResponse from '../packets/message/ChannelResponse'
+
+import SystemInputChannel from '../channels/SystemInput'
+import SystemMediaChannel from '../channels/SystemMedia'
+import TvRemoteChannel from '../channels/TvRemote'
+// import NanoChannel from '../channels/Nano'
 
 export default class Session {
     _client:Smartglass
@@ -145,11 +148,6 @@ export default class Session {
             this.once('_on_connect_response', (response) => {
                 const responsePacket = new ConnectResponse(response.data, this._crypto)
 
-                resolve({
-                    ...response,
-                    response: responsePacket,
-                })
-
                 this._sourceId = responsePacket.participant_id
 
                 // console.log('Sending local join message')
@@ -173,33 +171,26 @@ export default class Session {
                 this.send(localjoin_packet, ip)
 
                 this.once('_ack_id_' + localjoin.sequenceNum, (ack) => {
-                    // console.log('Local join acknowledged. Lets open the channels...')
+                    console.log('Local join acknowledged. Lets open the channels...')
 
-                    // const channels = {
-                    //     core: '00000000000000000000000000000000',
-                    // }
+                    const channels = {
+                        'system_input': new SystemInputChannel(),
+                        'system_media': new SystemMediaChannel(),
+                        'tv_remote': new TvRemoteChannel(),
+                        // 'nano': new NanoChannel(),
+                    }
 
-                    // for(const channel in channels){
-                    //     // Lets open the channels...
-                    //     const channnel_req = new ChannelRequest({
-                    //         sequenceNum: this._getSequenceNum(),
-                    //         target_id: this._targetId,
-                    //         source_id: this._sourceId,
-                    //         channel_id: Buffer.from('0000000000000000', 'hex'),
+                    for(const channel in channels){
+                        this.addManager(channel, channels[channel])
+                    }
 
-                    //         channel_request_id: 0,
-                    //         title_id: 0,
-                    //         channel_guid: Buffer.from('fa20b8ca66fb46e0adb60b978a59d35f', 'hex'),
-                    //         activity_id: 0,
-                    //     }, this._crypto)
-
-                    //     // console.log('channnel_req', channnel_req)
-
-                    //     this._client._logger.log('[Client -> Server] [' + channnel_req.sequenceNum + '] ChannelRequest:', channnel_req.channel_request_id, channnel_req.channel_guid)
-                    //     const channnel_req_packet = channnel_req.toPacket()
-                    //     this.send(channnel_req_packet, ip)
-                    //     // console.log('Opening core channel...')
-                    // }
+                    setTimeout(() => {
+                        // Timeout resolve to let the channels open
+                        resolve({
+                            ...response,
+                            response: responsePacket,
+                        })
+                    }, 1000)
                 })
 
                 // console.log('Sended local join message')

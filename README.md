@@ -1,6 +1,6 @@
 # Xbox-Smartglass-Node
 
-[![GitHub Workflow - Build](https://github.com/unknownskl/xbox-smartglass-node/workflows/.github/workflows/build.yml/badge.svg?branch=release/0.1.0)](https://github.com/unknownskl/xbox-smartglass-node/actions)
+[![Build Status](https://github.com/unknownskl/xbox-smartglass-node/actions/workflows/build.yml/badge.svg)](https://github.com/unknownskl/xbox-smartglass-node/actions/workflows/build.yml)
 
 <!-- [![Discord](https://img.shields.io/badge/discord-OpenXbox-blue.svg)](https://openxbox.org/discord) -->
 
