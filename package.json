@@ -1,6 +1,6 @@
 {
   "name": "xbox-smartglass-node",
-  "version": "0.1.0-beta1",
+  "version": "0.1.0-beta2",
   "description": "Xbox Smartglass library made in Typescript",
   "main": "dist/Smartglass.js",
   "scripts": {
