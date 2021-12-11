@@ -2,7 +2,7 @@ import Session from '../lib/Session'
 
 import ChannelRequest from '../packets/message/ChannelRequest'
 import ChannelResponse from '../packets/message/ChannelResponse'
-import Json from '../packets/message/Json'
+// import Json from '../packets/message/Json'
 
 export default class SystemMedia {
 
@@ -94,7 +94,7 @@ export default class SystemMedia {
 
     //             this._session.send(json_req.toPacket())
 
-    //             setTimeout(() =>{
+    //             this._session.once('_ack_id_' + json_req.sequenceNum, (ack) => {
     //                 resolve(this._configuration)
     //             }, 1000)
     //         } else {

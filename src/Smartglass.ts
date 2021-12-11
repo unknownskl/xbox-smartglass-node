@@ -1,5 +1,5 @@
 import Logger from './Logger'
-// import Events from './Events'
+import Events from './Events'
 import Session from './lib/Session'
 
 import DiscoveryRequest from './packets/simple/DiscoveryRequest'
@@ -7,12 +7,12 @@ import DiscoveryResponse from './packets/simple/DiscoveryResponse'
 
 export default class Smartglass {
     _logger:Logger;
-    // _events:Events;
-    _session
+    _events:Events;
+    _session;
 
     constructor() {
         this._logger = new Logger('xbox-smartglass-core')
-        // this._events = new Events()
+        this._events = new Events()
     }
 
     discovery(ip?:string) {
@@ -62,6 +62,14 @@ export default class Smartglass {
                     const session = new Session(this)
                     session.create().then(() => {
 
+                        // Relay timeout
+                        session.on('_on_timeout', (response) => {
+                            this._events.emit('_on_timeout', { ...response, session: session })
+                        })
+                        session.on('_on_console_status', (response) => {
+                            this._events.emit('_on_console_status', { ...response, session: session })
+                        })
+
                         session.connect(ip, response[0].certificate).then((connectresponse) => {
                             this._session = session
 
@@ -94,7 +102,11 @@ export default class Smartglass {
     }
 
     isConnected() {
-        //
+        if(this._session !== undefined){
+            return this._session.isConnected()
+        } else {
+            return false
+        }
     }
 
     powerOn(options) {
@@ -119,5 +131,9 @@ export default class Smartglass {
 
     getManager(name) {
         return this._session.getManager(name)
+    }
+
+    on(name, callback) {
+        this._events.on(name, callback)
     }
 }

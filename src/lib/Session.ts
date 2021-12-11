@@ -63,6 +63,10 @@ export default class Session {
                     // console.log('check timeout:', timeoutTime, '>', this._socketTimeout, '=', (this._socketTimeout - timeoutTime)/1000)
 
                     if(timeoutTime > this._socketTimeout) {
+                        this.emit('_on_timeout', {
+                            error: 'Session timeout',
+                            timeout: 15,
+                        })
                         this._client._logger.log('[Session.ts create()] Session timed out after 15 seconds. Closing session')
                         this.close()
                     }
@@ -120,6 +124,16 @@ export default class Session {
                 reject(error)
             })
         })
+    }
+
+    isConnected() {
+        const timeoutTime = Date.now() - (1000 * 15)
+
+        if(timeoutTime > this._socketTimeout) {
+            return false
+        } else {
+            return true
+        }
     }
 
     connect(ip, certificate) {

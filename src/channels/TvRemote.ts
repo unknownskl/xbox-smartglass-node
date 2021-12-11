@@ -94,8 +94,90 @@ export default class TvRemote {
 
                 this._session.send(json_req.toPacket())
 
-                setTimeout(() =>{
+                this._session.once('_ack_id_' + json_req.sequenceNum, (ack) => {
                     resolve(this._configuration)
+                }, 1000)
+            } else {
+                reject({
+                    status: 'error_channel_disconnected',
+                    error: 'Channel not ready: TvRemote',
+                })
+            }
+        })
+    }
+
+    getHeadendInfo(){
+        return new Promise((resolve, reject) => {
+            if(this._connected === true){
+
+                this._message_num++
+                const msgId = '2ed6c0fd.' + this._message_num
+
+                const json_request = {
+                    msgid: msgId,
+                    request: 'GetHeadendInfo',
+                }
+
+                const json_req = new Json({
+                    sequenceNum: this._session._getSequenceNum(),
+                    target_id: this._session._targetId,
+                    source_id: this._session._sourceId,
+                    channel_id: this._channel_id,
+
+                    json: JSON.stringify(json_request),
+                }, this._session._crypto)
+                
+                this._session._client._logger.log('[channels/TvRemote.ts] [' + json_req.sequenceNum + '] getConfiguration: Retrieve media configuration:', json_req)
+
+                this._session.send(json_req.toPacket())
+
+                this._session.once('_ack_id_' + json_req.sequenceNum, (ack) => {
+                    resolve(this._configuration)
+                }, 1000)
+            } else {
+                reject({
+                    status: 'error_channel_disconnected',
+                    error: 'Channel not ready: TvRemote',
+                })
+            }
+        })
+    }
+
+    sendIrCommand(button_id, device_id = null) {
+        return new Promise((resolve, reject) => {
+            if(this._connected === true){
+
+                this._message_num++
+                const msgId = '2ed6c0fd.' + this._message_num
+
+                const json_request = {
+                    msgid: msgId,
+                    request: 'SendKey',
+                    params: {
+                        button_id: button_id,
+                        device_id: device_id,
+                    },
+                }
+
+                const json_req = new Json({
+                    sequenceNum: this._session._getSequenceNum(),
+                    target_id: this._session._targetId,
+                    source_id: this._session._sourceId,
+                    channel_id: this._channel_id,
+
+                    json: JSON.stringify(json_request),
+                }, this._session._crypto)
+                
+                this._session._client._logger.log('[channels/TvRemote.ts] [' + json_req.sequenceNum + '] getConfiguration: Retrieve media configuration:', json_req)
+
+                this._session.send(json_req.toPacket())
+
+                // setTimeout(() => {
+                this._session.once('_ack_id_' + json_req.sequenceNum, (ack) => {
+                    resolve({
+                        status: 'ok_tvremote_send',
+                        params: json_request.params,
+                    })
                 }, 1000)
             } else {
                 reject({
